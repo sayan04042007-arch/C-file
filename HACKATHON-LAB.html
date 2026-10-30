@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Hackathon Idea Judge</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #090d16;
+            color: #f1f5f9;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 650px;
+            width: 100%;
+            background-color: #131c2e;
+            border: 1px solid #1e293b;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+        h1 {
+            color: #38bdf8;
+            margin-top: 0;
+            font-size: 1.8rem;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background-color: #0b1120;
+            color: #f8fafc;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+        }
+        input:focus, textarea:focus {
+            border-color: #38bdf8;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            width: 100%;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+        .output-box {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #0b1120;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            display: none; /* Hidden until AI replies */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>⚖️ AI Hackathon Judge</h1>
+        <p style="color: #94a3b8; margin-top: -10px;">Test your project idea before presenting to real judges.</p>
+
+        <!-- 1. API KEY INPUT (Enter your key here) -->
+        <label for="apiKey">Your Gemini API Key:</label>
+        <input type="password" id="apiKey" placeholder="Paste your AIzaSy... key here">
+
+        <!-- 2. USER IDEA INPUT -->
+        <label for="userIdea">Your Hackathon Project Idea:</label>
+        <textarea id="userIdea" placeholder="e.g., An app that tracks college mess food waste and alerts local animal shelters..."></textarea>
+
+        <!-- 3. SUBMIT BUTTON -->
+        <button id="judgeBtn" onclick="judgeMyIdea()">Critique My Idea</button>
+
+        <!-- 4. AI OUTPUT BOX -->
+        <div id="output" class="output-box"></div>
+    </div>
+
+    <script>
+    async function judgeMyIdea() {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const idea = document.getElementById('userIdea').value.trim();
+        const output = document.getElementById('output');
+        const button = document.getElementById('judgeBtn');
+
+        if (!apiKey) {
+            alert("Please paste your Gemini API Key first!");
+            return;
+        }
+        if (!idea) {
+            alert("Please enter a project idea!");
+            return;
+        }
+
+        // 1. Show loading state
+        button.disabled = true;
+        button.innerText = "🧠 The Judge is analyzing your idea...";
+        output.style.display = "block";
+        output.innerText = "⏳ Generating rapid evaluation from Gemini 3.8 Flash...";
+
+        const promptText = `
+            You are a strict, experienced hackathon judge.
+            Analyze this idea: "${idea}"
+
+            Provide brief bullet points:
+            1. 🏆 SCORE: (Rate /10)
+            2. ⚠️ BIGGEST RISK: (Why this could fail or be boring)
+            3. 🚀 WINNING FEATURE: (1 killer feature to blow judges away)
+            4. 🛠️ TECH STACK: (Recommended tools)
+        `;
+
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            parts: [{ text: promptText }]
+                        }
+                    ],
+                    generationConfig: {
+                        // Tell Gemini to respond fast with minimal delay
+                        thinkingConfig: {
+                            thinkingBudget: 0
+                        }
+                    }
+                })
+            });
+
+            const data = await response.json();
+            console.log("Response received from Google:", data);
+
+            // Handle API errors
+            if (data.error) {
+                output.innerText = "❌ Google API Error: " + data.error.message;
+                return;
+            }
+
+            // Extract the text (handles both standard text and thought parts)
+            const parts = data.candidates?.[0]?.content?.parts || [];
+            const responseText = parts
+                .filter(p => p.text && !p.thought)
+                .map(p => p.text)
+                .join("\n") || parts.map(p => p.text).join("\n");
+
+            if (responseText) {
+                output.innerText = responseText;
+            } else {
+                output.innerText = "⚠️ Received response, but no text was generated. Check console.";
+            }
+
+        } catch (err) {
+            output.innerText = "❌ Network error: " + err.message;
+            console.error("Fetch error:", err);
+        } finally {
+            button.disabled = false;
+            button.innerText = "Critique My Idea";
+        }
+    }
+    </script>
+
+</body>
+</html>
