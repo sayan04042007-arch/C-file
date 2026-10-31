@@ -3,30 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnapAudit AI | Visual Problem Solver</title>
+    <title>SnapAudit Pro | Visual Problem Solver</title>
 
-    <!-- 1. TAILWIND CSS CDN (Instant modern styling) -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- 2. LUCIDE ICONS (Modern startup icons) -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            500: '#38bdf8',
-                            600: '#0284c7',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen py-8 px-4 flex flex-col items-center selection:bg-brand-500 selection:text-slate-950">
+<body class="bg-slate-950 text-slate-100 min-h-screen py-8 px-4 flex flex-col items-center selection:bg-cyan-500 selection:text-slate-950">
 
     <div class="max-w-2xl w-full space-y-6">
 
@@ -34,31 +16,29 @@
         <header class="text-center space-y-2">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold tracking-wide uppercase">
                 <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                Multimodal AI Engine
+                Structured Vision Engine
             </div>
             <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">
-                SnapAudit AI
+                SnapAudit Pro
             </h1>
             <p class="text-slate-400 text-sm sm:text-base max-w-md mx-auto">
-                Snap or upload any photo — handwritten notes, broken hardware, bills, or food — and get instant diagnosis.
+                Snap any problem to get structured diagnostic cards, severity badges, and interactive checklists.
             </p>
         </header>
 
         <!-- MAIN CARD -->
         <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
 
-            <!-- API KEY INPUT (Collapsible or Clean) -->
+            <!-- API KEY -->
             <div>
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     Gemini API Key
                 </label>
-                <div class="relative">
-                    <input type="password" id="apiKey" placeholder="Paste your AIzaSy... key"
-                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition">
-                </div>
+                <input type="password" id="apiKey" placeholder="Paste your AIzaSy... key"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition">
             </div>
 
-            <!-- IMAGE UPLOAD DROPZONE -->
+            <!-- IMAGE DROPZONE -->
             <div>
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
                     Capture or Upload Photo
@@ -66,19 +46,17 @@
                 
                 <div id="dropzone" onclick="document.getElementById('fileInput').click()"
                     class="border-2 border-dashed border-slate-800 hover:border-cyan-500/50 bg-slate-950/50 rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-3">
-                    
                     <div class="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400">
                         <i data-lucide="camera" class="w-6 h-6"></i>
                     </div>
                     <div class="text-sm">
-                        <span class="text-cyan-400 font-semibold">Tap to take photo</span> or upload from device
+                        <span class="text-cyan-400 font-semibold">Tap to snap a photo</span> or upload
                     </div>
                     <p class="text-xs text-slate-500">Supports JPG, PNG, WEBP</p>
                 </div>
 
                 <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleImageSelect(event)">
 
-                <!-- IMAGE PREVIEW BOX -->
                 <div id="previewContainer" class="hidden relative mt-4 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
                     <img id="imagePreview" src="" alt="Preview" class="w-full max-h-64 object-contain">
                     <button onclick="removeImage()" class="absolute top-2 right-2 bg-slate-900/80 hover:bg-red-500 text-white p-1.5 rounded-lg border border-slate-700 transition">
@@ -87,96 +65,81 @@
                 </div>
             </div>
 
-            <!-- AUDIT MODE SELECTOR -->
+            <!-- QUESTION -->
             <div>
                 <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                    Analysis Mode
+                    Specific Question (Optional)
                 </label>
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" onclick="setMode('troubleshoot')" id="mode-troubleshoot"
-                        class="mode-btn active px-3 py-2.5 rounded-xl border border-cyan-500 bg-cyan-500/10 text-cyan-400 text-xs font-medium text-center transition">
-                        🛠️ Fix & Solve
-                    </button>
-                    <button type="button" onclick="setMode('extract')" id="mode-extract"
-                        class="mode-btn px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-xs font-medium text-center transition">
-                        📋 Extract Data
-                    </button>
-                    <button type="button" onclick="setMode('audit')" id="mode-audit"
-                        class="mode-btn px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-xs font-medium text-center transition">
-                        ⚖️ Strict Audit
-                    </button>
-                </div>
-            </div>
-
-            <!-- OPTIONAL QUESTION -->
-            <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                    Additional Context / Question (Optional)
-                </label>
-                <input type="text" id="userQuestion" placeholder="e.g., What is wrong with this circuit / recipe?"
+                <input type="text" id="userQuestion" placeholder="e.g., How do I repair this safely?"
                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition">
             </div>
 
-            <!-- ACTION BUTTON -->
+            <!-- SUBMIT BUTTON -->
             <button id="analyzeBtn" onclick="analyzeVisual()"
                 class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-cyan-500/20 active:scale-[0.99] transition flex items-center justify-center gap-2">
                 <i data-lucide="scan" class="w-5 h-5"></i>
-                <span id="btnText">Analyze with Gemini Vision</span>
+                <span id="btnText">Run Structured Audit</span>
             </button>
 
-            <!-- RESULT DISPLAY -->
-            <div id="resultBox" class="hidden rounded-xl border border-cyan-500/30 bg-slate-950/70 p-5 space-y-3">
-                <div class="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i>
-                    AI Visual Diagnosis
+            <!-- DYNAMIC REPORT WIDGET (Initially Hidden) -->
+            <div id="resultBox" class="hidden space-y-4">
+                <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+                    
+                    <!-- Title & Severity Badge -->
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 id="reportTitle" class="text-lg font-bold text-slate-100">Issue Title</h3>
+                            <p id="reportSummary" class="text-xs text-slate-400 mt-1 leading-relaxed">Summary</p>
+                        </div>
+                        <span id="severityBadge" class="px-3 py-1 rounded-full text-xs font-bold border shrink-0">
+                            Normal
+                        </span>
+                    </div>
+
+                    <!-- Health Score Bar -->
+                    <div class="space-y-1.5 pt-2 border-t border-slate-800/80">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <span class="text-slate-400">Condition Score</span>
+                            <span id="scoreText" class="text-cyan-400">85/100</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                            <div id="scoreBar" class="bg-cyan-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Cost / Estimate Chip -->
+                    <div class="flex items-center gap-2 text-xs text-slate-300 pt-1">
+                        <i data-lucide="tag" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span>Estimated Fix Cost: <strong id="costText" class="text-white">Free</strong></span>
+                    </div>
+
+                    <!-- Interactive Checklist -->
+                    <div class="pt-3 border-t border-slate-800/80 space-y-2">
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-300">
+                            <span>Recommended Action Checklist</span>
+                            <span id="checklistProgress" class="text-slate-500 text-[11px]">0 of 0 completed</span>
+                        </div>
+                        <div id="actionChecklist" class="space-y-2"></div>
+                    </div>
+
                 </div>
-                <div id="resultText" class="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap font-sans"></div>
             </div>
 
-        </div>
-
-        <!-- HISTORY SECTION -->
-        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 text-slate-200 font-bold text-sm">
-                    <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i>
-                    Recent Visual Scans
-                </div>
-                <button onclick="clearHistory()" class="text-xs text-red-400 hover:text-red-300 transition">
-                    Clear History
-                </button>
-            </div>
-
-            <div id="historyList" class="space-y-3"></div>
         </div>
 
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT -->
     <script>
         let selectedBase64 = null;
         let selectedMimeType = null;
-        let currentMode = 'troubleshoot';
 
-        // Initialize icons and local storage
         window.onload = function() {
             lucide.createIcons();
             const savedKey = localStorage.getItem('gemini_api_key');
             if (savedKey) document.getElementById('apiKey').value = savedKey;
-            renderHistory();
         };
 
-        // Mode selector
-        function setMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.className = "mode-btn px-3 py-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 text-xs font-medium text-center transition";
-            });
-            const activeBtn = document.getElementById(`mode-${mode}`);
-            activeBtn.className = "mode-btn px-3 py-2.5 rounded-xl border border-cyan-500 bg-cyan-500/10 text-cyan-400 text-xs font-medium text-center transition";
-        }
-
-        // Image Selection & Preview
         function handleImageSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -186,9 +149,7 @@
 
             reader.onload = function(e) {
                 const dataUrl = e.target.result;
-                // Extract pure base64 (remove the data:image/...;base64, header)
                 selectedBase64 = dataUrl.split(',')[1];
-
                 document.getElementById('imagePreview').src = dataUrl;
                 document.getElementById('previewContainer').classList.remove('hidden');
                 document.getElementById('dropzone').classList.add('hidden');
@@ -206,48 +167,50 @@
             document.getElementById('dropzone').classList.remove('hidden');
         }
 
-        // Call Gemini Multimodal API
         async function analyzeVisual() {
             const apiKey = document.getElementById('apiKey').value.trim();
             const userQuestion = document.getElementById('userQuestion').value.trim();
-            const resultBox = document.getElementById('resultBox');
-            const resultText = document.getElementById('resultText');
             const btn = document.getElementById('analyzeBtn');
             const btnText = document.getElementById('btnText');
+            const resultBox = document.getElementById('resultBox');
 
             if (!apiKey) {
                 alert("Please enter your Gemini API Key!");
                 return;
             }
             if (!selectedBase64) {
-                alert("Please take or upload a photo first!");
+                alert("Please upload a photo first!");
                 return;
             }
 
             localStorage.setItem('gemini_api_key', apiKey);
 
-            // Set loading state
             btn.disabled = true;
-            btnText.innerText = "Analyzing visual features...";
-            resultBox.classList.remove('hidden');
-            resultText.innerText = "⚡ Gemini 3.8 Flash is examining pixels and patterns...";
+            btnText.innerText = "Generating Structured Report...";
 
-            // Build dynamic prompt based on selected mode
-            let systemPrompt = "Analyze this image thoroughly.";
-            if (currentMode === 'troubleshoot') {
-                systemPrompt = "Identify the item or issue in this image. Diagnose the problem, provide root causes, and give 3 actionable steps to solve it.";
-            } else if (currentMode === 'extract') {
-                systemPrompt = "Extract all text, numbers, tables, or key data from this image in an organized, structured markdown format.";
-            } else if (currentMode === 'audit') {
-                systemPrompt = "Audit this image strictly. Flag any flaws, quality issues, safety risks, or violations with high scrutiny.";
-            }
-
-            const finalPrompt = userQuestion ? `${systemPrompt}\nUser Note: "${userQuestion}"` : systemPrompt;
+            // Strict JSON Instruction
+            const promptText = `
+                Analyze this image thoroughly.
+                You MUST respond strictly with valid JSON conforming to this exact schema:
+                {
+                  "title": "Short descriptive title of the object or problem",
+                  "severity": "Safe" | "Warning" | "Critical",
+                  "healthScore": integer between 1 and 100,
+                  "summary": "Brief 2-sentence summary of findings",
+                  "estimatedCost": "e.g. Free, $5 - $20, or Replacement Required",
+                  "actionSteps": [
+                    "Step 1 to resolve or inspect",
+                    "Step 2 to resolve or inspect",
+                    "Step 3 to resolve or inspect"
+                  ]
+                }
+                Do not include any explanation or markdown backticks outside the JSON.
+                ${userQuestion ? `Specific user note: "${userQuestion}"` : ''}
+            `;
 
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
 
-                // Notice the MULTIMODAL payload with both text AND inlineData (the image!)
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -255,7 +218,7 @@
                         contents: [
                             {
                                 parts: [
-                                    { text: finalPrompt },
+                                    { text: promptText },
                                     {
                                         inlineData: {
                                             mimeType: selectedMimeType,
@@ -266,6 +229,8 @@
                             }
                         ],
                         generationConfig: {
+                            // Tell Gemini to strictly output JSON
+                            responseMimeType: "application/json",
                             thinkingConfig: { thinkingBudget: 0 }
                         }
                     })
@@ -274,71 +239,82 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    resultText.innerText = "❌ Error: " + data.error.message;
+                    alert("Google Error: " + data.error.message);
                     return;
                 }
 
-                const parts = data.candidates?.[0]?.content?.parts || [];
-                const feedback = parts
-                    .filter(p => p.text && !p.thought)
-                    .map(p => p.text)
-                    .join("\n") || parts.map(p => p.text).join("\n");
+                // Extract and parse JSON
+                const rawParts = data.candidates?.[0]?.content?.parts || [];
+                const rawText = rawParts.filter(p => p.text && !p.thought).map(p => p.text).join("") || rawParts.map(p => p.text).join("");
+                
+                const report = JSON.parse(rawText);
+                console.log("Structured Report:", report);
 
-                resultText.innerText = feedback;
-
-                // Save to history with thumbnail
-                saveScan(userQuestion || currentMode.toUpperCase(), feedback, document.getElementById('imagePreview').src);
+                // Render dynamic widgets!
+                renderReport(report);
 
             } catch (err) {
-                resultText.innerText = "❌ Network error: " + err.message;
+                alert("Failed to parse report: " + err.message);
+                console.error(err);
             } finally {
                 btn.disabled = false;
-                btnText.innerText = "Analyze with Gemini Vision";
+                btnText.innerText = "Run Structured Audit";
             }
         }
 
-        // History Management
-        function saveScan(label, feedback, thumbnail) {
-            const history = JSON.parse(localStorage.getItem('snap_history') || '[]');
-            const newScan = {
-                id: Date.now(),
-                label: label,
-                feedback: feedback.substring(0, 180) + '...',
-                thumbnail: thumbnail,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            history.unshift(newScan);
-            // Keep maximum 6 items to prevent storage bloat
-            if (history.length > 6) history.pop();
-            localStorage.setItem('snap_history', JSON.stringify(history));
-            renderHistory();
-        }
+        // DYNAMIC WIDGET RENDERER
+        function renderReport(report) {
+            document.getElementById('resultBox').classList.remove('hidden');
+            document.getElementById('reportTitle').innerText = report.title;
+            document.getElementById('reportSummary').innerText = report.summary;
+            document.getElementById('costText').innerText = report.estimatedCost;
 
-        function renderHistory() {
-            const list = document.getElementById('historyList');
-            const history = JSON.parse(localStorage.getItem('snap_history') || '[]');
+            // 1. Health Score Progress Bar
+            const score = Math.max(1, Math.min(100, report.healthScore));
+            document.getElementById('scoreText').innerText = `${score}/100`;
+            const scoreBar = document.getElementById('scoreBar');
+            scoreBar.style.width = `${score}%`;
 
-            if (history.length === 0) {
-                list.innerHTML = `<p class="text-xs text-slate-500">No scans yet. Upload a photo above to begin!</p>`;
-                return;
+            // Color bar according to score
+            if (score > 70) scoreBar.className = "bg-emerald-500 h-2 rounded-full transition-all duration-700";
+            else if (score > 40) scoreBar.className = "bg-amber-500 h-2 rounded-full transition-all duration-700";
+            else scoreBar.className = "bg-rose-500 h-2 rounded-full transition-all duration-700";
+
+            // 2. Dynamic Severity Badge
+            const badge = document.getElementById('severityBadge');
+            const sev = (report.severity || "Safe").toLowerCase();
+
+            if (sev === "critical") {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold border shrink-0 bg-rose-500/10 text-rose-400 border-rose-500/20";
+                badge.innerText = "CRITICAL RISK";
+            } else if (sev === "warning") {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold border shrink-0 bg-amber-500/10 text-amber-400 border-amber-500/20";
+                badge.innerText = "WARNING";
+            } else {
+                badge.className = "px-3 py-1 rounded-full text-xs font-bold border shrink-0 bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                badge.innerText = "SAFE / OPTIMAL";
             }
 
-            list.innerHTML = history.map(item => `
-                <div class="flex items-center gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl">
-                    <img src="${item.thumbnail}" class="w-12 h-12 rounded-lg object-cover border border-slate-700 shrink-0">
-                    <div class="min-w-0 flex-1">
-                        <div class="text-xs font-semibold text-slate-200 truncate">${item.label}</div>
-                        <div class="text-[11px] text-slate-400 truncate">${item.feedback}</div>
-                    </div>
-                    <span class="text-[10px] text-slate-500 whitespace-nowrap">${item.time}</span>
-                </div>
+            // 3. Interactive Checkboxes
+            const checklistContainer = document.getElementById('actionChecklist');
+            const steps = report.actionSteps || [];
+
+            checklistContainer.innerHTML = steps.map((step, idx) => `
+                <label class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-900 border border-slate-800/80 cursor-pointer hover:border-slate-700 transition">
+                    <input type="checkbox" onchange="updateProgress()" class="mt-0.5 rounded border-slate-700 text-cyan-500 focus:ring-0 bg-slate-950 h-4 w-4">
+                    <span class="text-xs text-slate-300 select-none">${step}</span>
+                </label>
             `).join('');
+
+            updateProgress();
             lucide.createIcons();
         }
 
-        function clearHistory() {
-            localStorage.removeItem('snap_history');
-            renderHistory();
+        // Track how many tasks the user checked off
+        function updateProgress() {
+            const total = document.querySelectorAll('#actionChecklist input[type="checkbox"]').length;
+            const checked = document.querySelectorAll('#actionChecklist input[type="checkbox"]:checked').length;
+            document.getElementById('checklistProgress').innerText = `${checked} of ${total} completed`;
         }
     </script>
 </body>
