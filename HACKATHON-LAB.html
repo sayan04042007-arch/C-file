@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Hackathon Idea Judge</title>
+    <title>AI Hackathon Judge Pro</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #090d16;
             color: #f1f5f9;
             margin: 0;
-            padding: 40px 20px;
+            padding: 20px;
             display: flex;
             justify-content: center;
         }
@@ -19,7 +19,7 @@
             width: 100%;
             background-color: #131c2e;
             border: 1px solid #1e293b;
-            padding: 30px;
+            padding: 25px;
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         }
@@ -52,16 +52,16 @@
         }
         textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 80px;
         }
         button {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 15px;
             background: linear-gradient(135deg, #2563eb, #38bdf8);
             color: white;
             border: none;
             padding: 14px;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
@@ -75,125 +75,229 @@
             cursor: not-allowed;
         }
         .output-box {
-            margin-top: 25px;
+            margin-top: 20px;
             padding: 20px;
             background-color: #0b1120;
-            border: 1px solid #1e293b;
+            border: 1px solid #38bdf8;
             border-radius: 10px;
             white-space: pre-wrap;
             line-height: 1.6;
             font-size: 0.95rem;
-            display: none; /* Hidden until AI replies */
+            display: none;
+        }
+        .history-section {
+            margin-top: 35px;
+            border-top: 1px solid #1e293b;
+            padding-top: 20px;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .clear-btn {
+            background: none;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            width: auto;
+            margin: 0;
+            border-radius: 6px;
+        }
+        .clear-btn:hover {
+            background-color: #ef4444;
+            color: white;
+        }
+        .history-card {
+            background-color: #0b1120;
+            border: 1px solid #1e293b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 12px;
+        }
+        .history-title {
+            font-weight: bold;
+            color: #38bdf8;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+        .history-date {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .history-body {
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            max-height: 120px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>⚖️ AI Hackathon Judge</h1>
-        <p style="color: #94a3b8; margin-top: -10px;">Test your project idea before presenting to real judges.</p>
+        <h1>⚖️ AI Hackathon Judge Pro</h1>
+        <p style="color: #94a3b8; margin-top: -10px;">Evaluate ideas & save your track record locally.</p>
 
-        <!-- 1. API KEY INPUT (Enter your key here) -->
+        <!-- API KEY INPUT -->
         <label for="apiKey">Your Gemini API Key:</label>
         <input type="password" id="apiKey" placeholder="Paste your AIzaSy... key here">
 
-        <!-- 2. USER IDEA INPUT -->
+        <!-- IDEA INPUT -->
         <label for="userIdea">Your Hackathon Project Idea:</label>
-        <textarea id="userIdea" placeholder="e.g., An app that tracks college mess food waste and alerts local animal shelters..."></textarea>
+        <textarea id="userIdea" placeholder="e.g., An AI app that transcribes doctor prescriptions..."></textarea>
 
-        <!-- 3. SUBMIT BUTTON -->
+        <!-- SUBMIT BUTTON -->
         <button id="judgeBtn" onclick="judgeMyIdea()">Critique My Idea</button>
 
-        <!-- 4. AI OUTPUT BOX -->
+        <!-- AI OUTPUT BOX -->
         <div id="output" class="output-box"></div>
+
+        <!-- HISTORY SECTION -->
+        <div class="history-section">
+            <div class="history-header">
+                <h3>📜 Past Evaluations</h3>
+                <button class="clear-btn" onclick="clearHistory()">Clear All</button>
+            </div>
+            <div id="historyList"></div>
+        </div>
     </div>
 
     <script>
-    async function judgeMyIdea() {
-        const apiKey = document.getElementById('apiKey').value.trim();
-        const idea = document.getElementById('userIdea').value.trim();
-        const output = document.getElementById('output');
-        const button = document.getElementById('judgeBtn');
+        // Load API key and history as soon as the page opens
+        window.onload = function() {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
+            }
+            renderHistory();
+        };
 
-        if (!apiKey) {
-            alert("Please paste your Gemini API Key first!");
-            return;
-        }
-        if (!idea) {
-            alert("Please enter a project idea!");
-            return;
-        }
+        async function judgeMyIdea() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const idea = document.getElementById('userIdea').value.trim();
+            const output = document.getElementById('output');
+            const button = document.getElementById('judgeBtn');
 
-        // 1. Show loading state
-        button.disabled = true;
-        button.innerText = "🧠 The Judge is analyzing your idea...";
-        output.style.display = "block";
-        output.innerText = "⏳ Generating rapid evaluation from Gemini 3.8 Flash...";
-
-        const promptText = `
-            You are a strict, experienced hackathon judge.
-            Analyze this idea: "${idea}"
-
-            Provide brief bullet points:
-            1. 🏆 SCORE: (Rate /10)
-            2. ⚠️ BIGGEST RISK: (Why this could fail or be boring)
-            3. 🚀 WINNING FEATURE: (1 killer feature to blow judges away)
-            4. 🛠️ TECH STACK: (Recommended tools)
-        `;
-
-        try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    contents: [
-                        {
-                            parts: [{ text: promptText }]
-                        }
-                    ],
-                    generationConfig: {
-                        // Tell Gemini to respond fast with minimal delay
-                        thinkingConfig: {
-                            thinkingBudget: 0
-                        }
-                    }
-                })
-            });
-
-            const data = await response.json();
-            console.log("Response received from Google:", data);
-
-            // Handle API errors
-            if (data.error) {
-                output.innerText = "❌ Google API Error: " + data.error.message;
+            if (!apiKey) {
+                alert("Please paste your Gemini API Key first!");
+                return;
+            }
+            if (!idea) {
+                alert("Please enter a project idea!");
                 return;
             }
 
-            // Extract the text (handles both standard text and thought parts)
-            const parts = data.candidates?.[0]?.content?.parts || [];
-            const responseText = parts
-                .filter(p => p.text && !p.thought)
-                .map(p => p.text)
-                .join("\n") || parts.map(p => p.text).join("\n");
+            // Save the API key in LocalStorage so you don't have to paste it every time!
+            localStorage.setItem('gemini_api_key', apiKey);
 
-            if (responseText) {
+            // 1. Show loading
+            button.disabled = true;
+            button.innerText = "🧠 The Judge is analyzing your idea...";
+            output.style.display = "block";
+            output.innerText = "⏳ Generating rapid evaluation from Gemini 3.8 Flash...";
+
+            const promptText = `
+                You are a strict, experienced hackathon judge.
+                Analyze this idea: "${idea}"
+
+                Provide brief bullet points:
+                1. 🏆 SCORE: (Rate /10)
+                2. ⚠️ BIGGEST RISK: (Why this could fail or be boring)
+                3. 🚀 WINNING FEATURE: (1 killer feature to blow judges away)
+                4. 🛠️ TECH STACK: (Recommended tools)
+            `;
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }],
+                        generationConfig: {
+                            thinkingConfig: { thinkingBudget: 0 }
+                        }
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    output.innerText = "❌ Google API Error: " + data.error.message;
+                    return;
+                }
+
+                const parts = data.candidates?.[0]?.content?.parts || [];
+                const responseText = parts
+                    .filter(p => p.text && !p.thought)
+                    .map(p => p.text)
+                    .join("\n") || parts.map(p => p.text).join("\n");
+
                 output.innerText = responseText;
-            } else {
-                output.innerText = "⚠️ Received response, but no text was generated. Check console.";
+
+                // 2. Save this evaluation to History (LocalStorage)
+                saveToHistory(idea, responseText);
+
+            } catch (err) {
+                output.innerText = "❌ Network error: " + err.message;
+            } finally {
+                button.disabled = false;
+                button.innerText = "Critique My Idea";
+            }
+        }
+
+        // SAVE FUNCTION
+        function saveToHistory(idea, feedback) {
+            const history = JSON.parse(localStorage.getItem('hackathon_history') || '[]');
+            const newItem = {
+                id: Date.now(),
+                idea: idea,
+                feedback: feedback,
+                date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })
+            };
+            // Add new item to the top
+            history.unshift(newItem);
+            localStorage.setItem('hackathon_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        // RENDER FUNCTION (Draws the saved items on the screen)
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            const history = JSON.parse(localStorage.getItem('hackathon_history') || '[]');
+
+            if (history.length === 0) {
+                historyList.innerHTML = `<p style="color: #64748b; font-size: 0.9rem;">No evaluations yet. Test an idea above!</p>`;
+                return;
             }
 
-        } catch (err) {
-            output.innerText = "❌ Network error: " + err.message;
-            console.error("Fetch error:", err);
-        } finally {
-            button.disabled = false;
-            button.innerText = "Critique My Idea";
+            historyList.innerHTML = history.map(item => `
+                <div class="history-card">
+                    <div class="history-title">💡 ${escapeHtml(item.idea)}</div>
+                    <div class="history-date">🕒 ${item.date}</div>
+                    <div class="history-body">${escapeHtml(item.feedback)}</div>
+                </div>
+            `).join('');
         }
-    }
+
+        function clearHistory() {
+            if (confirm("Are you sure you want to clear your history?")) {
+                localStorage.removeItem('hackathon_history');
+                renderHistory();
+            }
+        }
+
+        // Helper to prevent HTML injection errors
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.innerText = text;
+            return div.innerHTML;
+        }
     </script>
 
 </body>
