@@ -72,8 +72,23 @@
                 </label>
                 <input type="text" id="userQuestion" placeholder="e.g., How do I repair this safely?"
                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition">
-            </div>
-
+                   <!-- QUESTION WITH MIC BUTTON -->
+<div>
+    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        Specific Question or Voice Prompt (Optional)
+    </label>
+    <div class="relative flex items-center">
+        <input type="text" id="userQuestion" placeholder="Type or tap the mic to speak..."
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-12 py-3 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition">
+        
+        <!-- Microphone Button -->
+        <button type="button" id="micBtn" onclick="toggleSpeech()"
+            class="absolute right-2 p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-900 rounded-lg transition"
+            title="Speak to dictate">
+            <i data-lucide="mic" class="w-5 h-5"></i>
+        </button>
+    </div>
+</div>
             <!-- SUBMIT BUTTON -->
             <button id="analyzeBtn" onclick="analyzeVisual()"
                 class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-cyan-500/20 active:scale-[0.99] transition flex items-center justify-center gap-2">
@@ -316,6 +331,62 @@
             const checked = document.querySelectorAll('#actionChecklist input[type="checkbox"]:checked').length;
             document.getElementById('checklistProgress').innerText = `${checked} of ${total} completed`;
         }
+        // SPEECH RECOGNITION (VOICE INPUT)
+let isRecording = false;
+let recognition = null;
+
+function toggleSpeech() {
+    const micBtn = document.getElementById('micBtn');
+    const inputField = document.getElementById('userQuestion');
+
+    // Check if the browser supports Speech Recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Sorry, your browser doesn't support built-in voice input. Please use Chrome or Edge!");
+        return;
+    }
+
+    if (!recognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US'; // You can change to 'en-IN' for Indian English accent!
+
+        recognition.onstart = function() {
+            isRecording = true;
+            micBtn.className = "absolute right-2 p-2 text-red-500 bg-red-500/10 animate-pulse rounded-lg transition";
+            inputField.placeholder = "🎙️ Listening... speak clearly now!";
+        };
+
+        recognition.onresult = function(event) {
+            const spokenText = event.results[0][0].transcript;
+            inputField.value = spokenText;
+        };
+
+        recognition.onerror = function(event) {
+            console.error("Speech error:", event.error);
+            resetMic();
+        };
+
+        recognition.onend = function() {
+            resetMic();
+        };
+    }
+
+    if (!isRecording) {
+        recognition.start();
+    } else {
+        recognition.stop();
+        resetMic();
+    }
+
+    function resetMic() {
+        isRecording = false;
+        micBtn.className = "absolute right-2 p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-900 rounded-lg transition";
+        inputField.placeholder = "Type or tap the mic to speak...";
+        lucide.createIcons();
+    }
+}
     </script>
 </body>
 </html>
